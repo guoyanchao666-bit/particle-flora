@@ -9,15 +9,26 @@
 
 入口页 `index.html` 提供两个版本的卡片式入口。
 
-- 在线预览（WorkBuddy 静态托管）：<https://particle-flora.app.workbuddy.host/?sharecode=WLWWCF7ZD7>
-- 部署后地址：`https://guoyanchao666-bit.github.io/particle-flora/`
+- 仓库：<https://github.com/guoyanchao666-bit/particle-flora>
+- GitHub Pages：<https://guoyanchao666-bit.github.io/particle-flora/>
+- WorkBuddy 预览：<https://particle-flora.app.workbuddy.host/?sharecode=WLWWCF7ZD7>
 
 ## 目录结构
 
 ```
 .
+├── README.md
+├── CHANGELOG.md                  版本变更记录
+├── CREDITS.md                    第三方许可与参考项目
 ├── index.html                    双版本入口
+├── .nojekyll
 ├── assets/landing.css            入口视觉
+├── docs/
+│   ├── 01-创作思路.md
+│   ├── 02-创作流程.md
+│   ├── 03-创作指导.md
+│   ├── 04-版本管理与发布.md
+│   └── 05-开发日志.md
 ├── versions/
 │   ├── rose/                     花信 · 手势粒子花园
 │   │   ├── index.html
@@ -31,25 +42,18 @@
 │       ├── src/{main,scene,lotus,gesture}.js
 │       ├── README.md
 │       └── creative/BRIEF.md
-├── docs/
-│   ├── 01-创作思路.md
-│   ├── 02-创作流程.md
-│   ├── 03-创作指导.md
-│   └── 04-版本管理与发布.md
-├── scripts/fetch-assets.sh       共享资源下载脚本
+├── scripts/fetch-assets.sh       运行资源重建脚本（可选）
 ├── .github/workflows/pages.yml   GitHub Pages 构建与发布
-├── CHANGELOG.md                  版本变更记录
-├── CREDITS.md                    第三方许可与参考项目
-└── .nojekyll
+├── models/hand_landmarker.task   手部关键点模型
+└── vendor/                       Three.js、MediaPipe（含 WASM）、GSAP
 ```
 
-`vendor/`（Three.js、MediaPipe、GSAP）与 `models/`（手部关键点模型）是构建产物，共约 50MB，不提交进 Git，由 `scripts/fetch-assets.sh` 在首次运行与每次构建时获取。
+`vendor/` 与 `models/` 自 `v2.1.0` 起纳入版本库，仓库克隆后可直接运行，不依赖网络与第三方 CDN。`scripts/fetch-assets.sh` 保留用于资源重建或校验：脚本会跳过已存在的文件，重复执行安全。
 
 ## 本地运行
 
 ```bash
 cd particle-flora
-bash scripts/fetch-assets.sh     # 首次运行：下载共享依赖与模型
 python -m http.server 8080
 ```
 
@@ -58,6 +62,12 @@ python -m http.server 8080
 - 莲境：<http://localhost:8080/versions/lotus/>
 
 摄像头只在 `localhost` 或 HTTPS 下启用。`file://` 直接打开会给出提示。
+
+如果 `vendor/`、`models/` 缺失或需要重建（例如只下载了部分源码）：
+
+```bash
+bash scripts/fetch-assets.sh
+```
 
 ## 操作
 
@@ -91,6 +101,7 @@ python -m http.server 8080
 - [创作流程说明](docs/02-创作流程.md) —— 三个阶段、返工记录、验证矩阵与复盘
 - [创作指导](docs/03-创作指导.md) —— 架构、着色器接口、新增一朵花的步骤、参数与检查清单
 - [版本管理与发布](docs/04-版本管理与发布.md) —— 语义化版本、提交约定、发版与回滚
+- [开发日志](docs/05-开发日志.md) —— 从需求、第一版、修改意见到第二版的完整过程
 - [变更日志](CHANGELOG.md)
 
 **版本级**
@@ -104,14 +115,15 @@ python -m http.server 8080
 | --- | --- | --- |
 | v1.0.0 | 花信 | 单花版本与基础工程 |
 | v2.0.0 | 双生花 | 新增莲境、入口页与文档体系 |
+| v2.1.0 | 完整离线 | 运行时资源入库、开发日志、结构整理 |
 
 ## 隐私与兼容
 
 - 摄像头影像只在浏览器本地处理，不上传、不录制、不显示。
 - 需要 WebGL 2；推荐 Chrome / Edge / Safari 16.4+。
-- 线上构建会把 `vendor/` 与 `models/` 一并打包，运行时不请求第三方 CDN。
+- 运行资源全部自托管，页面不请求第三方 CDN。
 - 第三方库与模型许可见 [CREDITS.md](CREDITS.md)。
 
 ## 部署
 
-`.github/workflows/pages.yml` 在推送到 `main` 或手动触发时执行：下载运行资源 → 汇总静态站点 → 上传并发布到 GitHub Pages。首次使用需在 **Settings → Pages** 把 Source 设为 **GitHub Actions**。
+`.github/workflows/pages.yml` 在推送到 `main` 或手动触发时执行：校验运行资源 → 汇总静态站点 → 上传并发布到 GitHub Pages。首次使用需在 **Settings → Pages** 把 Source 设为 **GitHub Actions**。
