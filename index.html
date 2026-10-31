@@ -3,114 +3,70 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#130b0c">
+<meta name="theme-color" content="#0b0809">
 <meta name="color-scheme" content="dark">
-<meta name="description" content="花信 · 手势粒子花园：一朵由摄像头手势驱动的粒子玫瑰，握拳收拢，张开时散作星野。">
-<title>花信 · 手势粒子花园</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23130b0c'/%3E%3Ccircle cx='16' cy='16' r='5' fill='%23e4788f'/%3E%3C/svg%3E">
-<style>
-  :root {
-    --ink: #f6ece7;
-    --dim: #b9a6a0;
-    --accent: #e4788f;
-    --bg: #130b0c;
-    --line: rgba(246, 236, 231, .16);
-  }
-  * { box-sizing: border-box; }
-  html, body { height: 100%; }
-  body {
-    margin: 0;
-    background: var(--bg);
-    color: var(--ink);
-    font-family: "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB", system-ui, sans-serif;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 32px 20px;
-  }
-  main { width: 100%; max-width: 560px; }
-  .kicker {
-    margin: 0 0 14px;
-    font-size: 12px;
-    letter-spacing: .22em;
-    color: var(--dim);
-    text-transform: uppercase;
-  }
-  h1 {
-    margin: 0 0 18px;
-    font-family: "Songti SC", "SimSun", "Source Han Serif SC", serif;
-    font-size: clamp(34px, 9vw, 52px);
-    font-weight: 500;
-    letter-spacing: .04em;
-  }
-  .lede {
-    margin: 0 0 36px;
-    font-size: 15px;
-    line-height: 1.9;
-    color: var(--dim);
-    max-width: 30em;
-  }
-  .card {
-    display: block;
-    padding: 26px 24px;
-    border: 1px solid var(--line);
-    color: inherit;
-    text-decoration: none;
-    transition: border-color .25s ease, background-color .25s ease;
-  }
-  .card:hover, .card:focus-visible {
-    border-color: var(--accent);
-    background: rgba(228, 120, 143, .06);
-    outline: none;
-  }
-  .card h2 {
-    margin: 0 0 8px;
-    font-family: "Songti SC", "SimSun", "Source Han Serif SC", serif;
-    font-size: 26px;
-    font-weight: 500;
-    letter-spacing: .06em;
-  }
-  .card p {
-    margin: 0 0 16px;
-    font-size: 14px;
-    line-height: 1.8;
-    color: var(--dim);
-  }
-  .meta {
-    display: flex;
-    gap: 18px;
-    font-size: 12px;
-    color: var(--dim);
-    letter-spacing: .06em;
-  }
-  .meta span { color: var(--ink); }
-  footer {
-    margin-top: 34px;
-    font-size: 12px;
-    color: var(--dim);
-    line-height: 1.9;
-  }
-  footer a { color: var(--ink); text-decoration: none; border-bottom: 1px solid var(--line); }
-</style>
+<meta name="description" content="两个由摄像头手势驱动的粒子花版本：花信是一朵会散成星野的玫瑰，莲境是一朵八万粒子的发光莲花。">
+<title>粒子花谱 · 手势双生花</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230b0809'/%3E%3Cg fill='none' stroke='%23d98aa0' stroke-width='1.1'%3E%3Cpath d='M16 17c-4-3-5-7-2-8 2.2-.8 3.4 2.5 2 8Zm0 0c4-3 5-7 2-8-2.2-.8-3.4 2.5-2 8Zm0 0c-5 1-8-2-7-5 .8-2.2 4.2-1.2 7 5Zm0 0c5 1 8-2 7-5-.8-2.2-4.2-1.2-7 5Z'/%3E%3C/g%3E%3Ccircle cx='16' cy='17' r='1.7' fill='%23fff3e8'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/landing.css">
 </head>
 <body>
-<main>
-  <p class="kicker">手势粒子花园 · 第一卷</p>
-  <h1>花信</h1>
-  <p class="lede">用摄像头读懂手掌的开合，让一朵粒子玫瑰从花苞走到星野。握拳收拢，张开绽放；不开摄像头也可以用手动控制看完整个形态。</p>
+<main class="portal">
+  <header class="intro">
+    <p class="kicker">两种花开，同一只手</p>
+    <h1>粒子花谱</h1>
+    <p class="lede">用摄像头读懂手掌的开合，让两种不同的花在同一块画布上生长。一个散成星野，一个铺成一池莲花。</p>
+  </header>
 
-  <a class="card" href="versions/rose/">
-    <h2>进入花园</h2>
-    <p>一朵玫瑰，四层花瓣，一根花茎。完全张开时外层花瓣散作覆盖画面的星场。</p>
-    <div class="meta">
-      <div>粒子 <span>13,000</span></div>
-      <div>形态 <span>3</span></div>
-      <div>依赖 <span>WebGL 2</span></div>
-    </div>
-  </a>
+  <section class="versions" aria-label="两个版本">
+    <a class="card" href="versions/rose/">
+      <span class="card-art" aria-hidden="true">
+        <svg viewBox="0 0 180 120" fill="none">
+          <g stroke="#d98aa0" stroke-width="1.1" stroke-linejoin="round">
+            <path d="M90 70c-20-8-33-24-22-32 12-8 24 12 22 32Z"/>
+            <path d="M90 70c20-8 33-24 22-32-12-8-24 12-22 32Z"/>
+            <path d="M90 70c-25 4-42-9-35-21 7-11 26-3 35 21Z"/>
+            <path d="M90 70c25 4 42-9 35-21-7-11-26-3-35 21Z"/>
+            <path d="M90 70c-10 17-27 24-33 14-5-9 14-15 33-14Z"/>
+            <path d="M90 70c10 17 27 24 33 14 5-9-14-15-33-14Z"/>
+            <path d="M90 86v24M90 98c-9 2-14 7-15 12M90 103c8 1 12 5 14 9" stroke="#7d8a5e"/>
+          </g>
+          <circle cx="90" cy="70" r="4" fill="#fff3e8"/>
+        </svg>
+      </span>
+      <span class="card-copy">
+        <span class="card-index">花信</span>
+        <span class="card-title">一朵会散成星野的玫瑰</span>
+        <span class="card-desc">握拳收拢成带茎叶的花苞，张开时四层花瓣展开，全开时外层散作粉白星场。</span>
+        <span class="card-meta">约 13,000 粒子 · 可调数量 · 三种形态</span>
+        <span class="card-go">进入花园</span>
+      </span>
+    </a>
 
-  <footer>
-    源码与创作手记见 <a href="https://github.com/guoyanchao666-bit/particle-flora">仓库</a>。摄像头画面不显示、不上传，只在本地提取手部关键点。
+    <a class="card" href="versions/lotus/">
+      <span class="card-art" aria-hidden="true">
+        <svg viewBox="0 0 180 120" fill="none">
+          <g stroke="#c08bd8" stroke-width="1.1" stroke-linejoin="round">
+            <path d="M90 92C55 89 32 68 28 42c28 1 53 19 62 44 9-25 34-43 62-44-4 26-27 47-62 50Z"/>
+            <path d="M90 92C66 80 51 57 51 31c23 8 37 28 39 55 2-27 16-47 39-55 0 26-15 49-39 61Z"/>
+            <path d="M90 93c-13-16-18-42-13-68 14 12 20 37 13 68Zm0 0c13-16 18-42 13-68-14 12-20 37-13 68Z"/>
+          </g>
+          <circle cx="90" cy="80" r="4" fill="#ffd9b5"/>
+        </svg>
+      </span>
+      <span class="card-copy">
+        <span class="card-index">莲境</span>
+        <span class="card-title">八万粒子的一池莲花</span>
+        <span class="card-desc">纯黑画布上，尖瓣层层舒展；手掌移动，整朵莲花随身而行。</span>
+        <span class="card-meta">80,000 粒子 · 粉紫 / 蓝紫 / 暖金</span>
+        <span class="card-go">进入莲池</span>
+      </span>
+    </a>
+  </section>
+
+  <footer class="portal-foot">
+    <p>两个版本都只需要一个静态服务器；摄像头仅在 localhost 或 HTTPS 下启用。</p>
+    <p><a href="versions/rose/creative/BRIEF.md">花信创作手记</a><span aria-hidden="true"> · </span><a href="versions/lotus/creative/BRIEF.md">莲境创作手记</a></p>
   </footer>
 </main>
 </body>

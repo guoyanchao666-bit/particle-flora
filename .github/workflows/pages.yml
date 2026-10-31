@@ -1,4 +1,4 @@
-name: Deploy gesture particle garden
+name: Deploy particle flora
 
 on:
   push:
@@ -32,7 +32,7 @@ jobs:
       - name: Stage static site
         run: |
           mkdir -p _site
-          cp -R index.html versions README.md CREDITS.md .nojekyll vendor models _site/
+          cp -R index.html assets versions docs scripts README.md CHANGELOG.md CREDITS.md .nojekyll vendor models _site/
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3

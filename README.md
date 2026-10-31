@@ -1,25 +1,44 @@
-# 花信 · 手势粒子花园
+# 粒子花谱 · 手势双生花
 
-一朵由摄像头手势驱动的 GPU 粒子粉玫瑰。握拳时粒子收拢成带花茎与两片叶子的花苞；手掌渐张，四层花瓣自内向外舒展；完全张开时外层花瓣散作覆盖画布的粉白星场——**聚是一朵花，散是漫天星**。
+两个由摄像头手势驱动的粒子花版本。它们共享同一套「手掌开合度 → 一朵花的开合」的交互骨架，但走向完全不同的视觉命题：
 
-当前为项目首个版本，只含「花信」一朵花与配套工程。第二朵花将在后续版本加入。
+| 版本 | 命题 | 默认粒子 | 色彩 |
+| --- | --- | --- | --- |
+| **花信** `versions/rose/` | 聚是一朵花，散是漫天星 | 13,000（4,000–30,000） | 暖黑、粉玫瑰、暖白 |
+| **莲境** `versions/lotus/` | 八万粒子的一池莲花 | 80,000（20,000–120,000） | 纯黑、粉紫 / 蓝紫 / 暖金 |
+
+入口页 `index.html` 提供两个版本的卡片式入口。
+
+- 在线预览（WorkBuddy 静态托管）：<https://particle-flora.app.workbuddy.host/?sharecode=WLWWCF7ZD7>
+- 部署后地址：`https://guoyanchao666-bit.github.io/particle-flora/`
 
 ## 目录结构
 
 ```
 .
-├── index.html                    入口引导页
-├── versions/rose/
-│   ├── index.html                页面结构
-│   ├── assets/style.css          视觉与响应式
-│   ├── src/main.js               交互、状态、降级
-│   ├── src/scene.js              Three.js 场景与着色器
-│   ├── src/flower.js             粒子几何
-│   ├── src/gesture.js            MediaPipe 手势
-│   ├── README.md                 版本说明
-│   └── creative/BRIEF.md         创作思路与方法指导
+├── index.html                    双版本入口
+├── assets/landing.css            入口视觉
+├── versions/
+│   ├── rose/                     花信 · 手势粒子花园
+│   │   ├── index.html
+│   │   ├── assets/style.css
+│   │   ├── src/{main,scene,flower,gesture}.js
+│   │   ├── README.md
+│   │   └── creative/BRIEF.md
+│   └── lotus/                    莲境 · 手势粒子莲花
+│       ├── index.html
+│       ├── assets/style.css
+│       ├── src/{main,scene,lotus,gesture}.js
+│       ├── README.md
+│       └── creative/BRIEF.md
+├── docs/
+│   ├── 01-创作思路.md
+│   ├── 02-创作流程.md
+│   ├── 03-创作指导.md
+│   └── 04-版本管理与发布.md
 ├── scripts/fetch-assets.sh       共享资源下载脚本
 ├── .github/workflows/pages.yml   GitHub Pages 构建与发布
+├── CHANGELOG.md                  版本变更记录
 ├── CREDITS.md                    第三方许可与参考项目
 └── .nojekyll
 ```
@@ -30,41 +49,69 @@
 
 ```bash
 cd particle-flora
-bash scripts/fetch-assets.sh
+bash scripts/fetch-assets.sh     # 首次运行：下载共享依赖与模型
 python -m http.server 8080
-# http://localhost:8080/
 ```
 
-摄像头只在 `localhost` 或 HTTPS 下启用。
+- 入口：<http://localhost:8080/>
+- 花信：<http://localhost:8080/versions/rose/>
+- 莲境：<http://localhost:8080/versions/lotus/>
+
+摄像头只在 `localhost` 或 HTTPS 下启用。`file://` 直接打开会给出提示。
 
 ## 操作
 
 - **手势**：点击「启用手势」并授权摄像头；握拳收拢、张开绽放。取景框只显示手部骨架，不显示摄像头画面。
-- **手动**：拖动「开合」、在画布上下拖动、`1/2/3` 直达形态、空格切换、`C` 摄像头、`H` 隐藏界面、`R` 复位。
-- **数量**：桌面 4,000–30,000、手机 3,000–16,000，实时重建并保留开合状态。
-- 摄像头拒绝、无设备、非安全上下文或模型加载失败时自动回到手动模式，画布不中断。
+- **手动**：拖动「开合」滑块、在画布上下拖动、`1/2/3` 直达形态、空格切换、`C` 摄像头、`H` 隐藏界面、`R` 复位；莲境另有 `P` 切换配色。
+- **数量**：实时调整粒子密度，重建几何时保留当前开合与配色。
+- **失败路径**：摄像头拒绝、无设备、非安全上下文、模型加载失败均自动回到手动模式，画布不中断。
+- `?still=1` 冻结动画，便于截图与评审。
 
 ## 技术结构
 
-1. **一个 BufferGeometry**：每个粒子预存花苞、花冠、星场三套位置，顶点着色器按开合度连续插值，单 draw call。
+两个版本共用一条技术路线：
+
+1. **一个 BufferGeometry**：粒子预存多套位置，顶点着色器按开合度连续插值，单 draw call。
 2. **手势比例法**：四指「指尖到手腕 / 指节到手腕」比值 + 拇指加权，不受手掌大小与旋转影响。
-3. **One Euro Filter + 临界阻尼弹簧**（`k=210, c=29`）：约 0.2 秒到位且不过冲。
+3. **One Euro Filter + 临界阻尼弹簧**：慢速抑抖、快速低延迟，约 0.2 秒到位。
 4. **手动优先**：手动操作后 2.4 秒内手势不抢回控制权。
-5. **降级**：WebGL 2 检测、摄像头失败回退、`file://` 提示、`prefers-reduced-motion`、标签页隐藏暂停。
+5. **数量实时调整**：重建几何并释放旧 GPU 缓冲，保留开合与配色；桌面/手机分档。
+6. **降级**：WebGL 2 检测、摄像头失败回退、`file://` 提示、`prefers-reduced-motion`、标签页隐藏暂停。
+
+差异在于形态与渲染：
+
+- 花信使用四层圆瓣 + 花茎 + 叶片 + 星场散射，暖调。
+- 莲境使用四层尖瓣 + 莲蓬 + 花丝，三套预存配色与整花跟随，纯黑冷调。
 
 ## 文档
 
-- [花信 README](versions/rose/README.md)
-- [花信创作手记](versions/rose/creative/BRIEF.md)
-- [Credits](CREDITS.md)
+**项目级**
 
-## 路线
+- [创作思路](docs/01-创作思路.md) —— 命题、视觉语言、交互哲学与「不做」清单
+- [创作流程说明](docs/02-创作流程.md) —— 三个阶段、返工记录、验证矩阵与复盘
+- [创作指导](docs/03-创作指导.md) —— 架构、着色器接口、新增一朵花的步骤、参数与检查清单
+- [版本管理与发布](docs/04-版本管理与发布.md) —— 语义化版本、提交约定、发版与回滚
+- [变更日志](CHANGELOG.md)
 
-- `v1.0.0` 花信：单花版本与基础工程（当前）
-- 后续：新增第二个版本、整站入口、项目级创作文档与版本记录
+**版本级**
+
+- [花信 README](versions/rose/README.md) · [花信创作手记](versions/rose/creative/BRIEF.md)
+- [莲境 README](versions/lotus/README.md) · [莲境创作手记](versions/lotus/creative/BRIEF.md)
+
+## 版本
+
+| 版本 | 主题 | 说明 |
+| --- | --- | --- |
+| v1.0.0 | 花信 | 单花版本与基础工程 |
+| v2.0.0 | 双生花 | 新增莲境、入口页与文档体系 |
 
 ## 隐私与兼容
 
 - 摄像头影像只在浏览器本地处理，不上传、不录制、不显示。
 - 需要 WebGL 2；推荐 Chrome / Edge / Safari 16.4+。
 - 线上构建会把 `vendor/` 与 `models/` 一并打包，运行时不请求第三方 CDN。
+- 第三方库与模型许可见 [CREDITS.md](CREDITS.md)。
+
+## 部署
+
+`.github/workflows/pages.yml` 在推送到 `main` 或手动触发时执行：下载运行资源 → 汇总静态站点 → 上传并发布到 GitHub Pages。首次使用需在 **Settings → Pages** 把 Source 设为 **GitHub Actions**。

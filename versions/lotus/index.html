@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="zh-CN" data-ready="false">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#030203">
+<meta name="color-scheme" content="dark">
+<meta name="description" content="一池由八万粒子构成的莲花。手掌张开，花瓣层层舒展；手掌收拢，光点合为一枚花苞。">
+<title>莲境 · 手势粒子莲花</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23030203'/%3E%3Cg fill='none' stroke='%23e6a6db' stroke-width='1.1' stroke-linejoin='round'%3E%3Cpath d='M16 24c-5-1-8-5-8-9 4 0 7 2 8 6 1-4 4-6 8-6 0 4-3 8-8 9Z'/%3E%3Cpath d='M16 25c-3-3-4-8-2-12 2 1 3 4 2 12Zm0 0c3-3 4-8 2-12-2 1-3 4-2 12Z'/%3E%3C/g%3E%3Ccircle cx='16' cy='20' r='1.5' fill='%23ffd9b5'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body data-palette="pink">
+<main class="experience">
+  <canvas id="stage" aria-label="粒子莲花画布" role="img"></canvas>
+  <p class="sr-only" id="sceneDescription">一朵由粒子构成的三维莲花。握拳时花瓣合拢为尖顶花苞，手掌张开时外层花瓣先展开，完全张开时八万颗粒子铺成完整的莲花，内层花瓣与暖色花心保留在中央。</p>
+
+  <div class="fallback" id="fallback" hidden>
+    <svg viewBox="0 0 140 120" aria-hidden="true" class="fallback-art">
+      <g fill="none" stroke-linejoin="round">
+        <path d="M70 94C43 91 25 73 22 48c22 1 42 15 48 36 6-21 26-35 48-36-3 25-21 43-48 46Z" stroke="#e6a6db"/>
+        <path d="M70 94C50 85 38 66 38 42c17 6 28 22 32 45 4-23 15-39 32-45 0 24-12 43-32 52Z" stroke="#f6b4e9"/>
+        <path d="M70 95C58 82 52 61 56 35c11 9 16 29 14 55 2-26 7-46 18-55 4 26-2 47-18 60Z" stroke="#ffd9b5"/>
+      </g>
+      <circle cx="70" cy="86" r="4" fill="#ffe1f7"/>
+    </svg>
+    <p class="fallback-title">这朵莲花需要 WebGL 才能开放</p>
+    <p class="fallback-copy">当前浏览器没有可用的 WebGL 2 环境。换用较新的 Chrome、Edge 或 Safari 再试；下方仍可查看操作说明。</p>
+    <button class="text-button" type="button" id="fallbackHelp">查看观看方式</button>
+  </div>
+
+  <header class="masthead ui">
+    <div class="identity">
+      <h1>莲境</h1>
+      <p>手势粒子莲花</p>
+    </div>
+    <div class="masthead-side">
+      <button class="text-button" type="button" id="helpOpen">观看方式</button>
+      <p class="perf" id="perf">正在准备画布</p>
+    </div>
+  </header>
+
+  <section class="lede ui" aria-live="polite" aria-atomic="true">
+    <h2 class="state" id="stateWord">绽放</h2>
+    <p class="state-line" id="stateLine">花瓣全部展开，粉紫光点从花心向外层流动。</p>
+  </section>
+
+  <section class="console ui" aria-label="莲花控制">
+    <div class="top-row">
+      <div class="states" role="group" aria-label="三种形态">
+        <button type="button" data-bloom="0.04" data-key="bud" aria-pressed="false">含苞</button>
+        <button type="button" data-bloom="0.5" data-key="half" aria-pressed="false">初绽</button>
+        <button type="button" data-bloom="0.95" data-key="bloom" class="is-active" aria-pressed="true">绽放</button>
+      </div>
+      <div class="palette" role="group" aria-label="配色">
+        <span class="palette-label">配色</span>
+        <button class="swatch is-active" type="button" data-palette="0" aria-label="粉紫配色" aria-pressed="true" style="--dot:#e6a6db"></button>
+        <button class="swatch" type="button" data-palette="1" aria-label="蓝紫配色" aria-pressed="false" style="--dot:#9aa8ff"></button>
+        <button class="swatch" type="button" data-palette="2" aria-label="暖金配色" aria-pressed="false" style="--dot:#efb767"></button>
+      </div>
+    </div>
+    <div class="range-row">
+      <label for="bloom">开合</label>
+      <div class="range">
+        <span class="range-track" aria-hidden="true"><span class="range-fill" id="rangeFill"></span></span>
+        <input id="bloom" type="range" min="0" max="100" step="1" value="78" aria-describedby="modeLine">
+      </div>
+      <output id="bloomOut" for="bloom">78</output>
+    </div>
+    <div class="range-row">
+      <label for="particleCount">数量</label>
+      <div class="range">
+        <span class="range-track" aria-hidden="true"><span class="range-fill" id="particleFill"></span></span>
+        <input id="particleCount" type="range" min="20000" max="120000" step="5000" value="80000" aria-label="粒子数量" aria-describedby="particleHint" aria-valuetext="80,000 个粒子">
+      </div>
+      <output id="particleOut" for="particleCount">80,000</output>
+    </div>
+    <span class="sr-only" id="particleHint">拖动调整粒子数量，实时生效；只改变粒子密度，不改变莲花开合状态。</span>
+    <div class="action-row">
+      <p class="mode" id="modeLine">手动模式 · 拖动滑块或按空格</p>
+      <button class="primary" type="button" id="gestureBtn">启用手势</button>
+    </div>
+  </section>
+
+  <aside class="camera" id="cameraPanel" hidden aria-label="手部骨架预览">
+    <div class="camera-frame">
+      <video id="cameraVideo" playsinline muted></video>
+      <svg class="camera-guide" viewBox="0 0 100 100" fill="none" aria-hidden="true">
+        <path d="M35 51V28a5 5 0 0 1 10 0v19-27a5 5 0 0 1 10 0v27-22a5 5 0 0 1 10 0v25-15a5 5 0 0 1 10 0v25c0 18-10 28-27 28-13 0-20-7-26-17L16 53a6 6 0 0 1 10-5l9 12"/>
+      </svg>
+      <canvas id="cameraOverlay" width="320" height="240" aria-hidden="true"></canvas>
+    </div>
+    <div class="camera-meta">
+      <p id="cameraState">正在启动摄像头</p>
+      <button type="button" id="cameraStop">关闭</button>
+    </div>
+  </aside>
+
+  <p class="creed ui">一花一世界，一念一莲开</p>
+  <div class="notice" id="notice" role="status" aria-live="polite"></div>
+</main>
+
+<dialog id="helpDialog" aria-labelledby="helpTitle">
+  <button class="text-button dialog-close" type="button" id="helpClose" aria-label="关闭">关闭</button>
+  <h2 id="helpTitle">让掌心开出一朵莲</h2>
+  <p class="dialog-lead">花苞、初绽、盛放共用一条连续的时间线，手势停在哪里，莲花就停在哪里。</p>
+  <div class="dialog-grid">
+    <div>
+      <h3>握拳</h3>
+      <p>所有花瓣向内合拢，光点收紧成一枚尖顶花苞，粒子上仍留着细密的层叠光。</p>
+    </div>
+    <div>
+      <h3>慢慢张开</h3>
+      <p>外圈花瓣先向外翻开，内圈仍合抱花心；手掌移动时，整朵莲花同步跟随。</p>
+    </div>
+    <div>
+      <h3>完全张开</h3>
+      <p>四层花瓣充分展开，粉紫、蓝紫或暖金的粒子在边缘亮起，花心保留暖色内核。</p>
+    </div>
+  </div>
+  <h3>配色与数量</h3>
+  <p>「配色」在粉紫、蓝紫、暖金之间切换，所有粒子使用同一套亮度和饱和度。拖动「数量」可在 20,000–120,000 之间实时改变密度，不会改变当前开合。</p>
+  <h3>没有摄像头的时候</h3>
+  <p>拖动「开合」，或直接在画面上上下拖动。按空格在花苞与盛放之间切换，按 1、2、3 直达三种形态。摄像头不可用时会自动留在手动模式。</p>
+  <p class="fine">摄像头只用于本地手势识别，不上传、不录制；页面不显示摄像头画面，只绘制手部骨架线条。</p>
+  <button class="primary dialog-action" type="button" id="helpDone">回到莲池</button>
+</dialog>
+
+<noscript>
+  <div class="noscript">这朵莲花需要 JavaScript 才能开放。请开启后刷新。</div>
+</noscript>
+
+<script>
+  if (location.protocol === 'file:') {
+    document.addEventListener('DOMContentLoaded', function () {
+      var panel = document.getElementById('fallback');
+      if (!panel) return;
+      panel.hidden = false;
+      panel.querySelector('.fallback-title').textContent = '请通过本地服务器打开';
+      panel.querySelector('.fallback-copy').textContent =
+        '摄像头和本地手势模型需要 http://localhost 环境。在项目目录运行 python -m http.server 8080，再访问对应目录。';
+      var help = panel.querySelector('#fallbackHelp');
+      if (help) help.hidden = true;
+      document.documentElement.dataset.ready = 'stalled';
+    });
+  }
+
+  window.setTimeout(function () {
+    var root = document.documentElement;
+    if (root.dataset.ready === 'false') {
+      root.dataset.stalled = 'true';
+      var perf = document.getElementById('perf');
+      if (perf) perf.textContent = '画布未启动 · 请查看观看方式';
+    }
+  }, 7000);
+</script>
+<script src="../../vendor/gsap/gsap.min.js"></script>
+<script type="module" src="src/main.js"></script>
+</body>
+</html>
