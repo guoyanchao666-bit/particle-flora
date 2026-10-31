@@ -1,0 +1,10 @@
+.taste-skill/
+.testtools/
+.vendor-tmp/
+_ref/
+.server.log
+node_modules/
+vendor/
+models/
+_site/
+publish/

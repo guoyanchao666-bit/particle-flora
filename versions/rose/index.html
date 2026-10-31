@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="zh-CN" data-ready="false">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#130b0c">
+<meta name="color-scheme" content="dark">
+<meta name="description" content="一朵由粒子构成的花。握拳收拢为花苞，张开手掌便层层舒展，完全张开时外层花瓣散作漫天星。">
+<title>花信 · 手势粒子花园</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23130b0c'/%3E%3Cg fill='none' stroke='%23e4788f' stroke-width='1.1'%3E%3Cpath d='M16 17c-4-3-6-7-3-8 2.5-.8 4 2.5 3 8Z'/%3E%3Cpath d='M16 17c4-3 6-7 3-8-2.5-.8-4 2.5-3 8Z'/%3E%3Cpath d='M16 17c-5 0-9-3-8-6 .8-2.4 4.4-1.4 8 6Z'/%3E%3Cpath d='M16 17c5 0 9-3 8-6-.8-2.4-4.4-1.4-8 6Z'/%3E%3Cpath d='M16 17c-1 5-4 8-6 6-1.8-1.8 1.6-4.4 6-6Z'/%3E%3Cpath d='M16 17c1 5 4 8 6 6 1.8-1.8-1.6-4.4-6-6Z'/%3E%3C/g%3E%3Ccircle cx='16' cy='17' r='1.6' fill='%23fff3e8'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<main class="experience">
+  <canvas id="stage" aria-label="粒子花朵画布" role="img"></canvas>
+  <p class="sr-only" id="sceneDescription">一朵粉色粒子玫瑰。握拳时收拢为带花茎和两片叶子的花苞，手掌张开时花瓣向上层层舒展，完全张开时外层花瓣散成覆盖画面的星场，内层花瓣与花心留在中央。</p>
+
+  <div class="fallback" id="fallback" hidden>
+    <svg viewBox="0 0 120 150" aria-hidden="true" class="fallback-art">
+      <path d="M60 118c-16-10-24-25-12-30 10-4 15 10 12 30Z" fill="none" stroke="#e4788f" stroke-width="1.2"/>
+      <path d="M60 118c16-10 24-25 12-30-10-4-15 10-12 30Z" fill="none" stroke="#e4788f" stroke-width="1.2"/>
+      <path d="M60 118c-22 2-35-11-30-21 4-9 18-4 30 21Z" fill="none" stroke="#f2a3b3" stroke-width="1.2"/>
+      <path d="M60 118c22 2 35-11 30-21-4-9-18-4-30 21Z" fill="none" stroke="#f2a3b3" stroke-width="1.2"/>
+      <path d="M60 118c-7 18-19 27-25 20-5-7 8-16 25-20Z" fill="none" stroke="#f7b9a8" stroke-width="1.2"/>
+      <path d="M60 118c7 18 19 27 25 20 5-7-8-16-25-20Z" fill="none" stroke="#f7b9a8" stroke-width="1.2"/>
+      <circle cx="60" cy="118" r="4" fill="#fff3e8"/>
+      <path d="M60 122c-2 8-1 16 2 24" fill="none" stroke="#7d8a5e" stroke-width="1.1"/>
+      <path d="M61 138c6-5 11-5 13-1-4 3-9 4-13 1Z" fill="none" stroke="#7d8a5e" stroke-width="1"/>
+    </svg>
+    <p class="fallback-title">这朵花需要 WebGL 才能开放</p>
+    <p class="fallback-copy">当前浏览器没有可用的 WebGL 2 环境。换用较新的 Chrome、Edge 或 Safari 再试；下方仍可查看操作说明。</p>
+    <button class="text-button" type="button" id="fallbackHelp">查看观看方式</button>
+  </div>
+
+  <header class="masthead ui">
+    <div class="identity">
+      <h1>花信</h1>
+      <p>手势粒子花园</p>
+    </div>
+    <div class="masthead-side">
+      <button class="text-button" type="button" id="helpOpen">观看方式</button>
+      <p class="perf" id="perf">正在准备画布</p>
+    </div>
+  </header>
+
+  <section class="lede ui" aria-live="polite" aria-atomic="true">
+    <h2 class="state" id="stateWord">舒展</h2>
+    <p class="state-line" id="stateLine">花瓣向上抬起，前后错落，花心还藏在暖白里。</p>
+  </section>
+
+  <section class="console ui" aria-label="花朵控制">
+    <div class="states" role="group" aria-label="三种形态">
+      <button type="button" data-bloom="0.03" data-key="bud" aria-pressed="false">含苞</button>
+      <button type="button" data-bloom="0.55" data-key="bloom" class="is-active" aria-pressed="true">舒展</button>
+      <button type="button" data-bloom="1" data-key="stars" aria-pressed="false">星野</button>
+    </div>
+    <div class="range-row">
+      <label for="bloom">开合</label>
+      <div class="range">
+        <span class="range-track" aria-hidden="true"><span class="range-fill" id="rangeFill"></span></span>
+        <input id="bloom" type="range" min="0" max="100" step="1" value="55" aria-describedby="modeLine">
+      </div>
+      <output id="bloomOut" for="bloom">55</output>
+    </div>
+    <div class="range-row">
+      <label for="particleCount">数量</label>
+      <div class="range">
+        <span class="range-track" aria-hidden="true"><span class="range-fill" id="particleFill"></span></span>
+        <input id="particleCount" type="range" min="4000" max="30000" step="1000" value="13000" aria-label="粒子数量" aria-describedby="particleHint" aria-valuetext="13000 个粒子">
+      </div>
+      <output id="particleOut" for="particleCount">13,000</output>
+    </div>
+    <span class="sr-only" id="particleHint">拖动调整粒子数量，实时生效；只改变粒子密度，不改变花朵开合状态。</span>
+    <div class="action-row">
+      <p class="mode" id="modeLine">手动模式 · 拖动滑块或按空格</p>
+      <button class="primary" type="button" id="gestureBtn">启用手势</button>
+    </div>
+  </section>
+
+  <aside class="camera" id="cameraPanel" hidden aria-label="手部骨架预览">
+    <div class="camera-frame">
+      <video id="cameraVideo" playsinline muted></video>
+      <svg class="camera-guide" viewBox="0 0 100 100" fill="none" aria-hidden="true">
+        <path d="M35 51V28a5 5 0 0 1 10 0v19-27a5 5 0 0 1 10 0v27-22a5 5 0 0 1 10 0v25-15a5 5 0 0 1 10 0v25c0 18-10 28-27 28-13 0-20-7-26-17L16 53a6 6 0 0 1 10-5l9 12"/>
+      </svg>
+      <canvas id="cameraOverlay" width="320" height="240" aria-hidden="true"></canvas>
+    </div>
+    <div class="camera-meta">
+      <p id="cameraState">正在启动摄像头</p>
+      <button type="button" id="cameraStop">关闭</button>
+    </div>
+  </aside>
+
+  <p class="creed ui">聚是一朵花，散是漫天星</p>
+
+  <div class="notice" id="notice" role="status" aria-live="polite"></div>
+</main>
+
+<dialog id="helpDialog" aria-labelledby="helpTitle">
+  <button class="text-button dialog-close" type="button" id="helpClose" aria-label="关闭">关闭</button>
+  <h2 id="helpTitle">用手，或者用鼠标</h2>
+  <p class="dialog-lead">这朵花只有一条连续的时间线：从一枚花苞，到满天星。</p>
+  <div class="dialog-grid">
+    <div>
+      <h3>握拳</h3>
+      <p>所有粒子收拢成一枚花苞，一根花茎和两片叶子仍然清楚。</p>
+    </div>
+    <div>
+      <h3>慢慢张开</h3>
+      <p>花苞自内向外打开，花瓣向上抬起，外层低垂、内层直立，形成前后层次。</p>
+    </div>
+    <div>
+      <h3>完全张开</h3>
+      <p>外层花瓣散成覆盖画布的粉白星场，内层花瓣与花心留在原处，缓缓呼吸。</p>
+    </div>
+  </div>
+  <h3>没有摄像头的时候</h3>
+  <p>拖动「开合」，或直接在画面上上下拖动。按空格在花苞与星野之间切换，按 1、2、3 直达三种形态。摄像头开启后，手掌的开合会覆盖手动设置。</p>
+  <p>拖动「数量」可以实时调整粒子密度，只会改变花瓣与花苞的细腻程度，不会改变当前开合状态。</p>
+  <p class="fine">影像只在你的浏览器本地处理，不会上传。摄像头需要 localhost 或 HTTPS 环境；不可用时页面会自动留在手动模式，画布不会中断。</p>
+  <button class="primary dialog-action" type="button" id="helpDone">回到花园</button>
+</dialog>
+
+<noscript>
+  <div class="noscript">这个花园需要 JavaScript 才能生长。请开启后刷新。</div>
+</noscript>
+
+<script>
+  // 直接双击 HTML 时，浏览器会拦截 ES 模块与摄像头；先说明正确打开方式。
+  if (location.protocol === 'file:') {
+    document.addEventListener('DOMContentLoaded', function () {
+      var panel = document.getElementById('fallback');
+      if (!panel) return;
+      panel.hidden = false;
+      panel.querySelector('.fallback-title').textContent = '请通过本地服务器打开';
+      panel.querySelector('.fallback-copy').textContent =
+        '摄像头和本地手势模型需要 http://localhost 环境。在项目目录运行 python -m http.server 8080，再访问 http://localhost:8080。';
+      var help = panel.querySelector('#fallbackHelp');
+      if (help) help.hidden = true;
+      document.documentElement.dataset.ready = 'stalled';
+    });
+  }
+
+  // 无论模块是否成功加载，界面都不会停在空白画布上。
+  window.setTimeout(function () {
+    var root = document.documentElement;
+    if (root.dataset.ready === 'false') {
+      root.dataset.stalled = 'true';
+      var perf = document.getElementById('perf');
+      if (perf) perf.textContent = '画布未启动 · 请查看观看方式';
+    }
+  }, 7000);
+</script>
+<script src="../../vendor/gsap/gsap.min.js"></script>
+<script type="module" src="src/main.js"></script>
+</body>
+</html>
