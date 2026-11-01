@@ -37,6 +37,9 @@ const els = {
   video: $('#cameraVideo'),
   overlay: $('#cameraOverlay'),
   perf: $('#perf'),
+  rawOpen: $('#rawOpen'),
+  smoothOpen: $('#smoothOpen'),
+  bloomRead: $('#bloomRead'),
   notice: $('#notice'),
   help: $('#helpDialog'),
   helpOpen: $('#helpOpen'),
@@ -133,6 +136,24 @@ function paint(value) {
   syncState(stateFor(v, stateKey));
 }
 
+const pctText = (v) => `${Math.round(clamp01(v) * 100)}%`;
+const readoutCache = { raw: '', smooth: '', bloom: '' };
+
+function setReadout(el, key, text) {
+  if (readoutCache[key] === text) return;
+  readoutCache[key] = text;
+  el.textContent = text;
+}
+
+/** 右上角三读数：原始张开度 / 平滑后张开度 / 实际绽放度。 */
+function paintReadout() {
+  const g = lotus?.gesture?.();
+  if (!g) return;
+  setReadout(els.rawOpen, 'raw', g.active ? pctText(g.raw) : '—');
+  setReadout(els.smoothOpen, 'smooth', g.active ? pctText(g.smooth) : '—');
+  setReadout(els.bloomRead, 'bloom', pctText(g.bloom));
+}
+
 function takeManual(value, { jump = false } = {}) {
   if (!lotus) return;
   const v = clamp01(value);
@@ -224,17 +245,26 @@ function createTracker(HandTracker) {
     video: els.video,
     canvas: els.overlay,
     onFrame(frame) {
-      if (!lotus || !frame.present) return;
+      if (!lotus) return;
       if (performance.now() < manualUntil) return;
-      const target = clamp01((frame.openness - 0.14) / 0.68);
-      lotus.setTarget(target);
-      lotus.setPointer(frame.point.x, frame.point.y);
+      if (!frame.present) {
+        lotus.setHandFrame({ present: false });
+        return;
+      }
+      lotus.setHandFrame({
+        present: true,
+        openness: frame.rawOpenness ?? frame.openness,
+        x: frame.point?.x ?? 0,
+        y: frame.point?.y ?? 0,
+        rotation: frame.rotation,
+        rotationConfidence: frame.rotationConfidence,
+      });
     },
     onStatus(status, text) {
       if (els.cameraState.textContent !== text) els.cameraState.textContent = text;
       els.cameraPanel.hidden = status === 'idle' || status === 'error';
       if (status === 'tracking') setMode('手势追踪中 · 张开或握拳');
-      else if (status === 'searching') setMode('寻找手掌 · 保持当前形态');
+      else if (status === 'searching') setMode(text === '把手放进画面' ? '寻找手掌 · 把手放进画面' : '寻找手掌 · 缓慢回落');
       else if (status === 'loading' || status === 'requesting') setMode('正在连接摄像头');
     },
     onError(message) {
@@ -245,6 +275,7 @@ function createTracker(HandTracker) {
       els.cameraPanel.hidden = true;
       setMode('手动模式 · 摄像头不可用');
       showNotice(message, 5600);
+      lotus?.setHandActive(false);
       lotus?.setPointer(0, 0);
     },
   });
@@ -265,7 +296,6 @@ async function enableCamera() {
     await tracker.start();
     els.gestureBtn.textContent = '关闭手势';
     els.gestureBtn.classList.add('is-live');
-    setMode('手势追踪中 · 张开或握拳');
     showNotice('把一只手掌放进画面，张开或握拳。', 3400);
   } catch (error) {
     els.cameraPanel.hidden = true;
@@ -273,6 +303,7 @@ async function enableCamera() {
     els.gestureBtn.classList.remove('is-live');
     setMode('手动模式 · 摄像头不可用');
     showNotice(error?.friendly || '手势模块未能启动，已回到手动模式', 5400);
+    lotus?.setHandActive(false);
   } finally {
     busy = false;
     els.gestureBtn.disabled = false;
@@ -285,6 +316,7 @@ function disableCamera() {
   els.gestureBtn.classList.remove('is-live');
   els.cameraPanel.hidden = true;
   setMode('手动模式 · 拖动滑块或按空格');
+  lotus?.setHandActive(false);
   lotus?.setPointer(0, 0);
 }
 
@@ -323,11 +355,15 @@ els.canvas.addEventListener('pointercancel', endDrag);
 
 window.addEventListener('pointermove', (event) => {
   if (event.pointerType === 'touch' || drag) return;
+  if (lotus?.isHandActive?.()) return;
   const x = clamp11((event.clientX / window.innerWidth - 0.5) * 1.7);
   const y = clamp11((0.5 - event.clientY / window.innerHeight) * 1.7);
   lotus?.setPointer(x, y);
 }, { passive: true });
-window.addEventListener('pointerleave', () => lotus?.setPointer(0, 0));
+window.addEventListener('pointerleave', () => {
+  if (lotus?.isHandActive?.()) return;
+  lotus?.setPointer(0, 0);
+});
 
 window.addEventListener('keydown', (event) => {
   const tag = document.activeElement?.tagName;
@@ -368,6 +404,7 @@ els.help.addEventListener('click', (event) => {
 
 window.setInterval(() => {
   if (lotus) paint(lotus.getBloom());
+  paintReadout();
 }, 90);
 
 window.setTimeout(() => {
@@ -398,6 +435,9 @@ window.__lotus = {
   setParticles(value) { applyParticleCount(value, { immediate: true }); return lotus?.stats(); },
   particleTarget() { return particleTarget; },
   particleRange() { return { ...particleLimits }; },
+  gesture() { return lotus?.gesture(); },
+  mapOpenness(value) { return lotus?.mapOpenness(Number(value)); },
+  hand(frame) { lotus?.setHandFrame(frame); },
   stats() { return { ...(lotus?.stats() || {}), detectMs: tracker?.detectMs ?? 0, delegate: tracker?.delegate ?? 'none' }; },
   mode() { return tracker?.running ? 'gesture' : 'manual'; },
 };

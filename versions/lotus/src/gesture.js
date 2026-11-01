@@ -1,8 +1,8 @@
 import { FilesetResolver, HandLandmarker } from '../../../vendor/mediapipe/vision_bundle.mjs';
+import { clamp01, palmCenter, palmRollInfo } from './signal.js';
 
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
-const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
 
 const CONNECTIONS = [
   [0, 1], [1, 2], [2, 3], [3, 4],
@@ -106,6 +106,9 @@ export class HandTracker {
     this.pxFilter = new OneEuro(1.8, 0.1, 1.2);
     this.pyFilter = new OneEuro(1.8, 0.1, 1.2);
     this.openness = 0.55;
+    this.lastRawOpenness = 0.55;
+    this.lastRotation = 0;
+    this.lastRotationConfidence = 1;
   }
 
   async loadModel(url, onProgress) {
@@ -230,6 +233,9 @@ export class HandTracker {
     this.openFilter.reset();
     this.pxFilter.reset();
     this.pyFilter.reset();
+    this.lastRawOpenness = this.openness;
+    this.lastRotation = 0;
+    this.lastRotationConfidence = 1;
     this.onStatus('searching', '把手放进画面');
     this.loop();
   }
@@ -263,14 +269,16 @@ export class HandTracker {
     const landmarks = result?.landmarks?.[0];
     if (landmarks) {
       const raw = measureOpenness(landmarks);
+      const center = palmCenter(landmarks);
+      const palm = palmRollInfo(landmarks);
+      const rotation = palm.angle;
       this.openness = this.openFilter.filter(raw, dt);
+      this.lastRawOpenness = raw;
+      this.lastRotation = rotation;
+      this.lastRotationConfidence = palm.confidence;
 
-      const palm = landmarks[0];
-      const mid = landmarks[9];
-      const cx = (palm.x + mid.x) / 2;
-      const cy = (palm.y + mid.y) / 2;
-      const px = deadzone(clamp((0.5 - cx) * 1.9, -1, 1));
-      const py = deadzone(clamp((0.5 - cy) * 1.9, -1, 1));
+      const px = deadzone(clamp((0.5 - center.x) * 1.9, -1, 1));
+      const py = deadzone(clamp((0.5 - center.y) * 1.9, -1, 1));
 
       const smoothX = this.pxFilter.filter(px, dt);
       const smoothY = this.pyFilter.filter(py, dt);
@@ -281,6 +289,9 @@ export class HandTracker {
       this.onFrame({
         present: true,
         openness: this.openness,
+        rawOpenness: raw,
+        rotation,
+        rotationConfidence: palm.confidence,
         point: { x: clamp(smoothX, -1, 1), y: clamp(smoothY, -1, 1) },
         landmarks,
       });
@@ -291,7 +302,14 @@ export class HandTracker {
     } else {
       if (this.present) {
         this.present = false;
-        this.onFrame({ present: false, openness: this.openness, point: { x: 0, y: 0 } });
+        this.onFrame({
+          present: false,
+          openness: this.openness,
+          rawOpenness: this.lastRawOpenness,
+          rotation: this.lastRotation,
+          rotationConfidence: this.lastRotationConfidence,
+          point: { x: 0, y: 0 },
+        });
         this.searching = false;
       }
       if (!this.searching && now - this.lastSeen > 420) {
